@@ -21,6 +21,7 @@ from django.conf import settings
 # from django.core.files.storage import FileSystemStorage
 from django.template import loader
 import random
+from random import sample
 
 
 # Create your views here.
@@ -29,14 +30,27 @@ import random
 def index(request):
     if request.method == "GET":
         if request.user.is_authenticated:
-            return render(request, "share/dashboard.html")
+            count = Post.objects.all().count()
+            rand_ids = sample(range(1, count), 3)
+            select = Post.objects.filter(id__in=rand_ids)
+
+            context = {
+                # 'latest_post_list':latest_post_list
+                "select":select
+            }
+
+            return render(request, "share/index.html", context)
         else:
-            # random_idx = random.randint(0, Post.objects.count()-1)
-            # random_post = Post.objects.all()[random_idx]
-            #
-            #
-            # # all_posts = Post.objects.all()   # all_posts is a list object [   ]
-            return render(request, "share/index.html")
+            count = Post.objects.all().count()
+            rand_ids = sample(range(1, count), 3)
+            select = Post.objects.filter(id__in=rand_ids)
+
+            context = {
+                # 'latest_post_list':latest_post_list
+                "select":select
+            }
+
+            return render(request, "share/index.html", context)
     else:
         return HttpResponse(status=500)
 
@@ -110,19 +124,29 @@ def dashboard(request):
             return redirect("share:login", {"user":user, "error":"Please Login"})
 
         else:
+            #
+            # friend = Friend.objects.get(current_user=user.id)
+            # friends = friend.users.all()
+            #
+            # post_list = Post.objects.filter(friends)
+            # latest_post_list=post_list.order_by('post_created')[::-1]
+            # template = loader.get_template('share/dashboard.html')
 
-            friend = Friend.objects.get(current_user=user.id)
-            friends = friend.users.all()
-
-            post_list = Post.objects.filter(friends)
-            latest_post_list=post_list.order_by('post_created')[::-1]
+            latest_post_list=Post.objects.order_by('post_created')[::-1]
             template = loader.get_template('share/dashboard.html')
 
-            # latest_post_list=Post.objects.order_by('post_created')[::-1]
-            # template = loader.get_template('share/dashboard.html')
+            # count = Post.objects.all().count()
+            # slice = random.random() * (count - 3)
+            # select = Post.objects.all()[slice: slice+3]
+
+            # count = Post.objects.all().count()
+            # rand_ids = sample(range(1, count), 3)
+            # select = Post.objects.filter(id__in=rand_ids)
+
 
             context = {
                 'latest_post_list':latest_post_list
+                # "select":select
             }
 
             return render(request, "share/dashboard.html", context)
